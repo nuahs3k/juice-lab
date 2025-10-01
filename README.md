@@ -1,139 +1,117 @@
-Juice Shop Vulnerability Lab
+# 🛡️ Vulnerability Scanning Lab with Juice Shop
 
-This project sets up and scans OWASP Juice Shop
-, an intentionally vulnerable web application used for practicing web security testing.
-The lab demonstrates basic recon, vulnerability scanning, and reporting workflows with Dockerized tools.
+This project demonstrates a simple **vulnerability scanning workflow** using the OWASP Juice Shop (an intentionally vulnerable web app).  
+It shows how to set up the lab with Docker, run scans using **Nmap** and **Nikto**, and collect results for analysis.
 
-📌 Project Overview
+---
 
-Goal: Practice running a vulnerable web app locally and scanning it with tools like Nmap and Nikto.
+## 🔧 Tools Used
+- **Docker Desktop** (to run containers)
+- **OWASP Juice Shop** (vulnerable app)
+- **Nmap** (network scanning & service detection)
+- **Nikto** (web vulnerability scanner)
+- **PowerShell** (for running commands & saving output)
 
-What I Did:
+---
 
-Deployed OWASP Juice Shop in Docker.
-
-Created a dedicated Docker network to isolate vulnerable apps.
-
-Ran network scans (nmap, nikto) against the container.
-
-Collected outputs into organized files.
-
-Documented issues/errors I encountered and how I solved them.
-
-Pushed the project with results and screenshots to GitHub.
-
-⚙️ Tech Stack
-
-Platform: Windows 11 (PowerShell)
-
-Containerization: Docker Desktop
-
-Targets:
-
-bkimminich/juice-shop (latest)
-
-Tools Used:
-
-instrumentisto/nmap
- (TCP scans, service version detection)
-
-sullo/nikto
- (web server vulnerability scanning)
-
-Version Control: Git + GitHub
-
-🛠️ How to Run
-
-Clone this repo:
-
-git clone https://github.com/<your-username>/juice-lab.git
-cd juice-lab
-
-
-Create the Docker network:
-
-docker network create vuln-net
-
-
-Run Juice Shop:
-
-docker run -d --name juice --network vuln-net bkimminich/juice-shop:latest
-
-
-(If you get a container name conflict, use another name like juice2)
-
-Run Nmap full TCP scan:
-
-docker run --rm --network vuln-net instrumentisto/nmap:latest -p- -sS -sV -T4 juice > .\scan-results\nmap_full_tcp.txt
-
-
-Run vulnerability scan:
-
-docker run --rm --network vuln-net instrumentisto/nmap:latest --script vuln juice > .\scan-results\nmap_vuln_scan.txt
-
-
-Run Nikto scan:
-
-docker run --rm --network vuln-net sullo/nikto:latest -h http://juice:3000 > .\scan-results\nikto_report.txt
-
-
-View results (top 40–60 lines):
-
-Get-Content .\scan-results\nmap_vuln_scan.txt -TotalCount 60
-Get-Content .\scan-results\nikto_report.txt -TotalCount 60
-
-📂 Project Layout
+## 📂 Project Layout
 juice-lab/
-│
-├── scan-results/              # All scanner outputs
-│   ├── nmap_full_tcp.txt
-│   ├── nmap_vuln_scan.txt
-│   └── nikto_report.txt
-│
-├── screenshots/               # Manual screenshots during testing
-│   ├── docker_network.png
-│   ├── nmap_results.png
-│   └── github_push.png
-│
-├── .gitignore                 # Excluded files
-└── README.md                  # Documentation
+│── scan-results/ # Output from scanners
+│ ├── nmap_full_tcp.txt
+│ ├── nmap_vuln_scan.txt
+│ └── nikto_report.txt
+│── README.md
 
-🐛 Errors Encountered & Fixes
-Error	Cause	Fix
-Conflict. The container name "/juice" is already in use	Tried to reuse a container name	Removed old container (docker rm -f juice) or renamed new one (juice2)
-Out-File: Could not find a part of the path 'C:\Users\...scan-results\nmap_full_tcp.txt'	Folder didn’t exist	Created scan-results directory before running scan
-Unexpected token \n=== in PowerShell	Misused backticks in inline PowerShell	Broke command into separate lines or used semicolons properly
-Git push rejected (remote not found / auth failed)	No GitHub remote or wrong credentials	Added remote with git remote add origin ... and used PAT for authentication
-🔧 Troubleshooting
+yaml
+Copy code
 
-Docker not starting: Restart Docker Desktop.
+---
 
-Can’t access Juice Shop in browser: Use http://localhost:3000.
+## 🚀 Step-by-Step Instructions
 
-Nmap scans fail: Ensure container is on the same Docker network (--network vuln-net).
+### 1. Install & Open Docker Desktop
+- Download: [Docker Desktop](https://www.docker.com/products/docker-desktop/)  
+- Make sure Docker is running before continuing.
 
-Git errors: Run git status to check for staged files. Use git pull --rebase before pushing.
+---
 
-🚀 Potential Updates
+### 2. Create a Working Folder
+```powershell
+mkdir $HOME\juice-lab\scan-results
+cd $HOME\juice-lab
+3. Create a Docker Network
+This keeps the vulnerable app and scanners on the same network.
 
-Add Metasploitable2 or DVWA containers to expand the lab.
+powershell
+Copy code
+docker network create vuln-net
+4. Run OWASP Juice Shop
+powershell
+Copy code
+docker run -d --name juice2 --network vuln-net bkimminich/juice-shop:latest
+-d → detached mode (runs in background)
 
-Automate scanning + reporting with a PowerShell or Python script.
+--name juice2 → container name (use juice2 if juice already exists)
 
-Build a Markdown → PDF pipeline for cleaner reports.
+--network vuln-net → attach to the same network as scanners
 
-Expand screenshots into a proper walkthrough guide.
+To confirm it’s running:
 
-Add CI/CD (GitHub Actions) to auto-run scans on container startup.
+powershell
+Copy code
+docker ps
+5. Run Nmap Full TCP Scan
+Scans all ports and detects services.
 
-✅ Status
+powershell
+Copy code
+docker run --rm --network vuln-net instrumentisto/nmap:latest -p- -sS -sV -T4 juice2 > scan-results\nmap_full_tcp.txt
+6. Run Nmap Vulnerability Scan
+Uses vulnerability detection scripts.
 
-Project completed successfully:
+powershell
+Copy code
+docker run --rm --network vuln-net instrumentisto/nmap:latest --script vuln juice2 > scan-results\nmap_vuln_scan.txt
+7. Run Nikto Scan
+Scans for web vulnerabilities.
 
-Vulnerable app deployed
+powershell
+Copy code
+docker run --rm --network vuln-net sullo/nikto:latest -h http://juice2 > scan-results\nikto_report.txt
+8. View Results
+Check the scan outputs in the scan-results folder:
 
-Scans captured
+powershell
+Copy code
+Get-Content .\scan-results\nmap_full_tcp.txt -TotalCount 40
+Get-Content .\scan-results\nmap_vuln_scan.txt -TotalCount 40
+Get-Content .\scan-results\nikto_report.txt -TotalCount 40
 
-Errors resolved
+⚠️ Troubleshooting
+Docker Internal Server Error (500):
+→ Start/restart Docker Desktop.
 
-Repo structured and pushed to GitHub
+Container name conflict:
+
+powershell
+Copy code
+docker rm -f juice
+Then rerun with --name juice2.
+
+Folder not found (scan-results):
+→ Make sure you created it before saving outputs:
+
+powershell
+Copy code
+mkdir $HOME\juice-lab\scan-results
+🔮 Future Improvements
+Automate scans with a single PowerShell script.
+
+Add other scanners (OpenVAS, Nessus).
+
+Deploy in a cloud lab environment.
+
+ℹ️ Notes
+Screenshots were originally created during testing but not included here to avoid exposing personal file paths.
+
+All results can be reproduced by following the steps above.
